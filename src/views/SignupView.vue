@@ -10,7 +10,12 @@ const password = ref('')
 const passwordConfirm = ref('')
 const name = ref('')
 const email = ref('')
-const address = ref('')
+const address = ref('') // 전체 주소 (서버 전송용)
+const postcode = ref('') // 우편번호
+const roadAddress = ref('') // 도로명 주소
+const jibunAddress = ref('') // 지번 주소
+const detailAddress = ref('') // 상세 주소
+const extraAddress = ref('') // 참고 항목
 const birthDate = ref('')
 const allAgreed = ref(false)
 const termsAgreed = ref(false)
@@ -159,6 +164,46 @@ const verifyCode = async () => {
     verificationError.value = error.response?.data?.message || '인증번호가 일치하지 않거나 만료되었습니다.'
   } finally {
     isVerificationLoading.value = false
+  }
+}
+
+// 카카오 우편번호 API 호출
+const openPostcode = () => {
+  new window.daum.Postcode({
+    oncomplete: function(data) {
+      // 도로명 주소 변수
+      let fullRoadAddr = data.roadAddress
+      let extraRoadAddr = ''
+
+      // 건물명이 있고, 공동주택일 경우 추가
+      if (data.buildingName !== '' && data.apartment === 'Y') {
+        extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName)
+      }
+      
+      // 표시할 참고항목이 있을 경우, 괄호까지 추가한 문자열 생성
+      if (extraRoadAddr !== '') {
+        extraRoadAddr = ' (' + extraRoadAddr + ')'
+      }
+
+      // 우편번호와 주소 정보를 해당 필드에 입력
+      postcode.value = data.zonecode
+      roadAddress.value = fullRoadAddr
+      jibunAddress.value = data.jibunAddress
+      extraAddress.value = extraRoadAddr
+      
+      // 전체 주소 조합 (서버 전송용)
+      address.value = fullRoadAddr + extraRoadAddr
+      
+      // 상세주소 입력 필드로 포커스 이동
+      document.getElementById('detailAddress')?.focus()
+    }
+  }).open()
+}
+
+// 상세주소 입력 시 전체 주소 업데이트
+const updateFullAddress = () => {
+  if (roadAddress.value) {
+    address.value = roadAddress.value + (extraAddress.value || '') + (detailAddress.value ? ', ' + detailAddress.value : '')
   }
 }
 
@@ -396,16 +441,60 @@ const checkAllAgreed = () => {
             <!-- 주소 -->
             <div class="relative">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">주소</label>
+              
+              <!-- 우편번호 -->
+              <div class="flex gap-2 mb-2">
+                <input
+                  v-model="postcode"
+                  type="text"
+                  readonly
+                  placeholder="우편번호"
+                  class="appearance-none rounded-lg relative block w-32 px-4 py-3 border border-gray-300 dark:border-gray-600
+                         placeholder-gray-500 text-gray-900 dark:text-white
+                         focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                         dark:bg-gray-700 dark:placeholder-gray-400
+                         transition-colors duration-200
+                         cursor-not-allowed bg-gray-50 dark:bg-gray-600"
+                />
+                <button
+                  type="button"
+                  @click="openPostcode"
+                  class="px-4 py-3 whitespace-nowrap rounded-lg text-sm font-medium
+                         text-white bg-orange-500 hover:bg-orange-600
+                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500
+                         transition-colors duration-200"
+                >
+                  주소 찾기
+                </button>
+              </div>
+              
+              <!-- 도로명 주소 -->
               <input
-                v-model="address"
+                v-model="roadAddress"
                 type="text"
+                readonly
                 required
+                placeholder="도로명 주소"
+                class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 dark:border-gray-600
+                       placeholder-gray-500 text-gray-900 dark:text-white mb-2
+                       focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
+                       dark:bg-gray-700 dark:placeholder-gray-400
+                       transition-colors duration-200
+                       cursor-not-allowed bg-gray-50 dark:bg-gray-600"
+              />
+              
+              <!-- 상세 주소 -->
+              <input
+                id="detailAddress"
+                v-model="detailAddress"
+                @input="updateFullAddress"
+                type="text"
+                placeholder="상세 주소 (동, 호수 등)"
                 class="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 dark:border-gray-600
                        placeholder-gray-500 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500
                        dark:bg-gray-700 dark:placeholder-gray-400
                        transition-colors duration-200"
-                placeholder="주소"
               />
             </div>
 
