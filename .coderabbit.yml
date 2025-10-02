@@ -1,0 +1,85 @@
+# .coderabbit.yaml
+language: "ko-KR"
+early_access: false
+
+# 리뷰 설정
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "develop"
+
+# 채팅 설정
+chat:
+  auto_reply: true
+
+# 프로젝트별 리뷰 규칙
+rules:
+  # Vue / JavaScript / TypeScript 관련 체크
+  - pattern: "**/*.vue"
+    checks:
+      - "performance" # 렌더링/반응 속도
+      - "best_practices" # Vue 모범 사례
+      - "error_handling" # 에러 처리 패턴
+      - "testing" # 테스트 커버리지 및 품질
+      - "documentation" # 주석 및 코드 설명
+      - "naming" # 네이밍 컨벤션
+      - "complexity" # 코드 복잡도 검사
+  - pattern: "**/*.js"
+    checks:
+      - "performance"
+      - "best_practices"
+      - "error_handling"
+      - "testing"
+      - "documentation"
+      - "naming"
+      - "complexity"
+  - pattern: "**/*.ts"
+    checks:
+      - "performance"
+      - "best_practices"
+      - "error_handling"
+      - "testing"
+      - "documentation"
+      - "naming"
+      - "complexity"
+
+# 제외할 파일/디렉토리
+exclude:
+  - "**/*.log"
+  - "**/dist/**"
+  - "**/node_modules/**"
+  - "**/.vite/**"
+  - "**/*.min.js"
+  - "**/*.min.css"
+  - "**/generated/**"
+  - "**/.env*"
+
+# 특별 주의사항
+focus_areas:
+  - "컴포넌트 구조 설계"
+  - "Vuex / Pinia 상태 관리"
+  - "라우터 설정"
+  - "API 통신 (Axios/Fetch)"
+  - "성능 최적화"
+  - "에러 핸들링"
+  - "테스트 코드 품질 (Jest / Cypress)"
+  - "CSS / 스타일 일관성"
+
+# 검토 우선순위
+priority_files:
+  - "**/*.vue"
+  - "**/*.js"
+  - "**/*.ts"
+  - "**/store/**"
+  - "**/router/**"
+  - "**/components/**"
+  - "**/views/**"
