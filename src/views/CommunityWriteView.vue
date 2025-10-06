@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { useAuthStore } from '../stores/auth.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const postForm = ref({
   title: '',
   content: ''
@@ -11,6 +13,13 @@ const postForm = ref({
 const isSubmitting = ref(false)
 
 const submitPost = async () => {
+  // 로그인 확인
+  if (!authStore.isLoggedIn || !authStore.userInfo) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return
+  }
+  
   if (!postForm.value.title.trim()) {
     alert('제목을 입력해주세요.')
     return
@@ -24,7 +33,15 @@ const submitPost = async () => {
   isSubmitting.value = true
   
   try {
-    await axios.post('/api/community/posts', postForm.value)
+    // JSON 형식으로 간단하게 전송 (백엔드가 @RequestBody 사용)
+    const authorId = authStore.userInfo.userId
+    
+    await axios.post('/api/community/posts', {
+      authorId: authorId,
+      title: postForm.value.title,
+      content: postForm.value.content
+    })
+    
     alert('게시글이 작성되었습니다.')
     router.push('/')  // 메인 페이지로 돌아가기
   } catch (error) {

@@ -6,14 +6,41 @@ import axios from 'axios'
 const router = useRouter()
 const posts = ref([])
 const communityLoading = ref(false)
+const sortOrder = ref('desc') // 'desc': 최신순, 'asc': 과거순
+const pagination = ref({
+  currentPage: 0,
+  totalPages: 0,
+  totalElements: 0,
+  size: 10
+})
 
-const loadPosts = async () => {
+const loadPosts = async (page = 0, size = 10, keyword = '', sort = sortOrder.value) => {
   communityLoading.value = true
   try {
-    const response = await axios.get('/api/community/posts')
-    posts.value = response.data
+    const params = {
+      page: page,
+      size: size,
+      sort: sort === 'desc' ? 'desc' : 'asc'
+    }
+    
+    // keyword가 있을 때만 추가
+    if (keyword) {
+      params.keyword = keyword
+    }
+    
+    const response = await axios.get('/api/community/posts', { params })
+    
+    // Spring Page 객체에서 실제 데이터 추출
+    posts.value = response.data.content || []
+    pagination.value = {
+      currentPage: response.data.number || 0,
+      totalPages: response.data.totalPages || 0,
+      totalElements: response.data.totalElements || 0,
+      size: response.data.size || 10
+    }
   } catch (error) {
     console.error('게시글 로딩 오류:', error)
+    console.error('에러 상세:', error.response?.data)
   } finally {
     communityLoading.value = false
   }
@@ -25,6 +52,16 @@ const goToWritePost = () => {
 
 const goToPostDetail = (postId) => {
   router.push(`/community/${postId}`)
+}
+
+const goToPage = (page) => {
+  loadPosts(page, pagination.value.size, '', sortOrder.value)
+}
+
+const changeSortOrder = (newSort) => {
+  console.log('🔄 정렬 변경:', sortOrder.value, '→', newSort)
+  sortOrder.value = newSort
+  loadPosts(0, pagination.value.size, '', newSort)
 }
 
 // 초기 로드
@@ -47,6 +84,36 @@ defineExpose({ loadPosts })
         </svg>
         글쓰기
       </button>
+    </div>
+
+    <!-- 정렬 옵션 -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">정렬:</span>
+        <div class="flex gap-2">
+          <button @click="changeSortOrder('desc')"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                    sortOrder === 'desc'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ]">
+            최신순
+          </button>
+          <button @click="changeSortOrder('asc')"
+                  :class="[
+                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                    sortOrder === 'asc'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ]">
+            과거순
+          </button>
+        </div>
+      </div>
+      <span class="text-sm text-gray-500 dark:text-gray-400">
+        전체 {{ pagination.totalElements }}개
+      </span>
     </div>
 
     <!-- 게시글 목록 -->
@@ -99,6 +166,47 @@ defineExpose({ loadPosts })
         <button @click="goToWritePost"
                 class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           첫 게시글 작성하기
+        </button>
+      </div>
+
+      <!-- 페이징 -->
+      <div v-if="posts.length > 0 && pagination.totalPages > 1" 
+           class="flex items-center justify-center gap-2 pt-4">
+        <button @click="goToPage(pagination.currentPage - 1)"
+                :disabled="pagination.currentPage === 0"
+                class="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
+                       hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <template v-for="page in pagination.totalPages" :key="page">
+          <button v-if="Math.abs(page - 1 - pagination.currentPage) <= 2 || page === 1 || page === pagination.totalPages"
+                  @click="goToPage(page - 1)"
+                  :class="[
+                    'px-4 py-2 rounded-lg transition-colors',
+                    pagination.currentPage === page - 1
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ]">
+            {{ page }}
+          </button>
+          <span v-else-if="page === 2 && pagination.currentPage > 3" 
+                class="px-2 text-gray-500 dark:text-gray-400">...</span>
+          <span v-else-if="page === pagination.totalPages - 1 && pagination.currentPage < pagination.totalPages - 4" 
+                class="px-2 text-gray-500 dark:text-gray-400">...</span>
+        </template>
+
+        <button @click="goToPage(pagination.currentPage + 1)"
+                :disabled="pagination.currentPage === pagination.totalPages - 1"
+                class="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
+                       hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>
