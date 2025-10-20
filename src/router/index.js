@@ -4,6 +4,8 @@ import LoginView from "../views/LoginView.vue";
 import SignupView from "../views/SignupView.vue";
 import CommunityWriteView from "../views/CommunityWriteView.vue";
 import CommunityDetailView from "../views/CommunityDetailView.vue";
+import ProfileView from "../views/ProfileView.vue";
+import CarTipsView from "../views/CarTipsView.vue";
 import { getToken } from "../utils/auth.js";
 
 const router = createRouter({
@@ -28,12 +30,6 @@ const router = createRouter({
       meta: { requiresAuth: false }, // 인증 불필요
     },
     {
-      path: "/about",
-      name: "about",
-      component: () => import("../views/AboutView.vue"),
-      meta: { requiresAuth: false }, // 인증 불필요
-    },
-    {
       path: "/community/write",
       name: "community-write",
       component: CommunityWriteView,
@@ -43,6 +39,18 @@ const router = createRouter({
       path: "/community/:id",
       name: "community-detail",
       component: CommunityDetailView,
+      meta: { requiresAuth: true }, // 인증 필요
+    },
+    {
+      path: "/profile",
+      name: "profile",
+      component: ProfileView,
+      meta: { requiresAuth: true }, // 인증 필요
+    },
+    {
+      path: "/car-tips",
+      name: "car-tips",
+      component: CarTipsView,
       meta: { requiresAuth: true }, // 인증 필요
     },
   ],
