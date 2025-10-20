@@ -50,6 +50,10 @@ const goToWritePost = () => {
   router.push('/community/write')
 }
 
+const goToCarTips = () => {
+  router.push('/car-tips')
+}
+
 const goToPostDetail = (postId) => {
   router.push(`/community/${postId}`)
 }
@@ -74,7 +78,7 @@ defineExpose({ loadPosts })
 
 <template>
   <div class="space-y-4">
-    <!-- 헤더와 글쓰기 버튼 -->
+    <!-- 헤더 -->
     <div class="flex items-center justify-between">
       <h3 class="text-xl font-bold text-gray-900 dark:text-white">커뮤니티</h3>
       <button @click="goToWritePost"
@@ -84,6 +88,31 @@ defineExpose({ loadPosts })
         </svg>
         글쓰기
       </button>
+    </div>
+
+    <!-- 차량 관리 팁 유도 영역 -->
+    <div @click="goToCarTips" 
+         class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-xl p-6 cursor-pointer transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-white/20 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-xl font-bold text-white mb-1">차량 관리 팁</h4>
+            <p class="text-green-100 text-sm">차량 관리에 대해 궁금하신가요?</p>
+            <p class="text-green-200 text-xs mt-1">엔진 오일, 연비, 안전 운전 등 다양한 팁을 확인해보세요</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-white">
+          <span class="text-sm font-medium">자세히 보기</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
     </div>
 
     <!-- 정렬 옵션 -->
