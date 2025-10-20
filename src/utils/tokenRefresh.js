@@ -30,13 +30,13 @@ export const refreshAccessToken = async () => {
     
     if (newAccessToken) {
       setToken(newAccessToken)
-      console.log('✅ Access Token 갱신 성공')
+      console.log('Access Token 갱신 성공')
       return newAccessToken
     }
     
     throw new Error('새 토큰을 받지 못했습니다.')
   } catch (error) {
-    console.error('❌ Access Token 갱신 실패:', error)
+    console.error('Access Token 갱신 실패:', error)
     removeToken()
     localStorage.removeItem('userInfo')
     throw error
@@ -55,7 +55,7 @@ export const setupTokenRefreshInterceptor = () => {
         
         // refresh 요청 자체가 실패한 경우 로그아웃 처리
         if (originalRequest.url === '/user/refresh') {
-          console.log('❌ Refresh Token 만료 - 로그인 필요')
+          console.log('Refresh Token 만료 - 로그인 필요')
           window.location.href = '/login'
           return Promise.reject(error)
         }
