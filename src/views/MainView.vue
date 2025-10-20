@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import PriceTab from '../components/tabs/PriceTab.vue'
-import StationTab from '../components/tabs/StationTab.vue'
 import InsuranceTab from '../components/tabs/InsuranceTab.vue'
 import CommunityTab from '../components/tabs/CommunityTab.vue'
 
@@ -31,12 +30,7 @@ const switchTab = (tab) => {
           <button @click="switchTab('price')" 
                   :class="{'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'price'}"
                   class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-             유가 정보
-          </button>
-          <button @click="switchTab('station')"
-                  :class="{'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'station'}"
-                  class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-             주유소 찾기
+             유가 정보 & 주유소 찾기
           </button>
           <button @click="switchTab('insurance')"
                   :class="{'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400': activeTab === 'insurance'}"
@@ -53,7 +47,6 @@ const switchTab = (tab) => {
 
       <!-- 탭 컨텐츠 -->
       <PriceTab v-if="activeTab === 'price'" />
-      <StationTab v-if="activeTab === 'station'" />
       <InsuranceTab v-if="activeTab === 'insurance'" />
       <CommunityTab v-if="activeTab === 'community'" ref="communityTabRef" />
     </div>

@@ -38,9 +38,24 @@ const logout = async () => {
   router.push('/login')  // 로그인 페이지로 이동
 }
 
+// 마이페이지로 이동
+const goToProfile = () => {
+  router.push('/profile')
+}
+
+// 프로필 이미지 로드 실패 처리
+const handleImageError = (event) => {
+  console.log('프로필 이미지 로드 실패, 기본 아바타로 대체')
+  event.target.style.display = 'none'
+}
+
 onMounted(() => {
   initDarkMode()
   authStore.checkAuthStatus()
+  
+  // 임시: 프로필 이미지 URL 확인
+  console.log('사용자 정보:', authStore.userInfo)
+  console.log('프로필 이미지 URL:', authStore.userInfo?.profileImageUrl)
 })
 </script>
 
@@ -83,9 +98,31 @@ onMounted(() => {
             
             <!-- 로그인 상태에 따른 조건부 렌더링 -->
             <div v-if="authStore.isAuthenticated" class="flex items-center space-x-4">
-              <span class="text-gray-700 dark:text-gray-300 text-sm">
-                안녕하세요, {{ authStore.userName }}님
-              </span>
+              <!-- 프로필 이미지와 이름 (클릭 가능) -->
+              <button 
+                @click="goToProfile"
+                class="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-2 py-1 transition-colors duration-200"
+              >
+                <!-- 프로필 이미지 -->
+                <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 flex-shrink-0">
+                  <img 
+                    v-if="authStore.userInfo?.profileImageUrl" 
+                    :src="authStore.userInfo.profileImageUrl" 
+                    :alt="authStore.userName + ' 프로필 이미지'"
+                    class="w-full h-full object-cover"
+                    @error="handleImageError"
+                  />
+                  <!-- 기본 아바타 (이미지가 없거나 로드 실패 시) -->
+                  <div v-else class="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <span class="text-gray-700 dark:text-gray-300 text-sm">
+                  {{ authStore.userName }}님
+                </span>
+              </button>
               <button
                 @click="logout"
                 class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center"
