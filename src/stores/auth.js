@@ -29,12 +29,12 @@ export const useAuthStore = defineStore('auth', () => {
         const accessToken = response.data.token
         if (accessToken) {
           setToken(accessToken)
-          console.log('✅ Access Token이 저장되었습니다.')
-          console.log('📌 토큰 타입:', response.data.tokenType)
-          console.log('⏰ Access Token 만료:', response.data.expiresIn, '초 (', response.data.expiresIn / 60, '분)')
-          console.log('🍪 Refresh Token은 httpOnly 쿠키에 저장됨')
+          console.log('Access Token이 저장되었습니다.')
+          console.log('토큰 타입:', response.data.tokenType)
+          console.log('Access Token 만료:', response.data.expiresIn, '초 (', response.data.expiresIn / 60, '분)')
+          console.log('Refresh Token은 httpOnly 쿠키에 저장됨')
         } else {
-          console.error('❌ Access Token이 응답에 없습니다!')
+          console.error('Access Token이 응답에 없습니다!')
           throw new Error('Access Token을 받지 못했습니다.')
         }
         
@@ -69,9 +69,9 @@ export const useAuthStore = defineStore('auth', () => {
       // 서버에 로그아웃 요청 (토큰을 블랙리스트에 추가)
       // axios 인터셉터가 자동으로 Authorization: Bearer {token} 헤더 추가
       await axios.post('/user/logout')
-      console.log('✅ 서버 로그아웃 성공 - 토큰이 블랙리스트에 추가됨')
+      console.log('서버 로그아웃 성공 - 토큰이 블랙리스트에 추가됨')
     } catch (error) {
-      console.error('❌ 서버 로그아웃 오류:', error)
+      console.error('서버 로그아웃 오류:', error)
       // 서버 요청 실패해도 클라이언트는 로그아웃 처리
     } finally {
       // 클라이언트에서 상태 초기화 (항상 실행)
@@ -79,20 +79,20 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('userInfo')        // localStorage에서 사용자 정보 삭제
       isLoggedIn.value = false                   // 로그인 상태 false
       userInfo.value = null                      // 사용자 정보 초기화
-      console.log('✅ 클라이언트 로그아웃 완료')
+      console.log('클라이언트 로그아웃 완료')
     }
   }
 
   const checkAuthStatus = async () => {
     const token = getToken()
     if (!token) {
-      console.log('❌ 토큰 없음 - 로그인 필요')
+      console.log('토큰 없음 - 로그인 필요')
       isLoggedIn.value = false
       userInfo.value = null
       return false
     }
 
-    console.log('✅ 토큰 있음 - 로그인 상태 복원')
+    console.log('토큰 있음 - 로그인 상태 복원')
     
     // JWT 토큰이 있으면 로그인 상태로 설정
     // 실제 사용자 정보는 필요할 때 API로 가져옴
@@ -103,7 +103,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (savedUserInfo) {
       try {
         userInfo.value = JSON.parse(savedUserInfo)
-        console.log('👤 사용자 정보 복원:', userInfo.value)
+        console.log('사용자 정보 복원:', userInfo.value)
       } catch (e) {
         console.error('사용자 정보 파싱 오류:', e)
       }
@@ -119,16 +119,68 @@ export const useAuthStore = defineStore('auth', () => {
     userInfo.value = null
   }
 
+  // OAuth 리다이렉트 경로 저장
+  const oauthRedirectPath = ref(null)
+  
+  const setOAuthRedirect = (path) => {
+    oauthRedirectPath.value = path
+    console.log('OAuth 리다이렉트 경로 저장:', path)
+  }
+  
+  const getOAuthRedirect = () => {
+    const path = oauthRedirectPath.value
+    oauthRedirectPath.value = null // 사용 후 초기화
+    return path
+  }
+
   // 토큰 갱신 (Refresh Token 사용)
   const refreshToken = async () => {
     try {
       const newAccessToken = await refreshAccessToken()
-      console.log('✅ 스토어: Access Token 갱신 완료')
+      console.log('스토어: Access Token 갱신 완료')
       return newAccessToken
     } catch (error) {
-      console.error('❌ 스토어: Access Token 갱신 실패')
+      console.error('스토어: Access Token 갱신 실패')
       clearAuth()
       throw error
+    }
+  }
+
+  // 카카오 로그인 (OAuth 인증 코드 처리)
+  const kakaoLogin = async (kakaoData) => {
+    try {
+      isLoading.value = true
+      const response = await axios.post('/user/kakao-login', kakaoData)
+      
+      if (response.data && response.data.accessToken) {
+        // 토큰 저장
+        localStorage.setItem('accessToken', response.data.accessToken)
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken)
+        }
+        
+        // 사용자 정보 저장
+        userInfo.value = response.data.user || {
+          id: response.data.userId,
+          nickname: response.data.nickname || '카카오 사용자',
+          email: response.data.email || '',
+          profileImage: response.data.profileImage || ''
+        }
+        
+        // 사용자 정보를 localStorage에 저장
+        localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+        
+        isLoggedIn.value = true
+        
+        return { success: true, data: response.data }
+      } else {
+        throw new Error('카카오 로그인 응답 데이터가 올바르지 않습니다.')
+      }
+    } catch (error) {
+      console.error('카카오 로그인 에러:', error)
+      throw error
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -147,7 +199,10 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     checkAuthStatus,
     clearAuth,
-    refreshToken  // 토큰 갱신 함수 추가
+    refreshToken,  // 토큰 갱신 함수 추가
+    kakaoLogin,     // 카카오 로그인 함수 추가
+    setOAuthRedirect, // OAuth 리다이렉트 경로 저장
+    getOAuthRedirect  // OAuth 리다이렉트 경로 가져오기
   }
 })
 

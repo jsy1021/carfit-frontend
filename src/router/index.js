@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import MainView from "../views/MainView.vue";
 import LoginView from "../views/LoginView.vue";
+import LoginRedirectView from "../views/LoginRedirectView.vue";
+import SocialSignupView from "../views/SocialSignupView.vue";
 import SignupView from "../views/SignupView.vue";
 import CommunityWriteView from "../views/CommunityWriteView.vue";
 import CommunityDetailView from "../views/CommunityDetailView.vue";
@@ -22,6 +24,30 @@ const router = createRouter({
       name: "login",
       component: LoginView,
       meta: { requiresAuth: false }, // 인증 불필요
+    },
+    {
+      path: "/oauth/callback/kakao",
+      name: "login-redirect-kakao",
+      component: LoginRedirectView,
+      meta: { requiresAuth: false }, // 인증 불필요
+    },
+    {
+      path: "/oauth/callback/google",
+      name: "login-redirect-google",
+      component: LoginRedirectView,
+      meta: { requiresAuth: false }, // 인증 불필요
+    },
+    {
+      path: "/oauth/callback/naver",
+      name: "login-redirect-naver",
+      component: LoginRedirectView,
+      meta: { requiresAuth: false }, // 인증 불필요
+    },
+    {
+      path: "/social-signup",
+      name: "social-signup",
+      component: SocialSignupView,
+      meta: { requiresAuth: false }, // 인증 불필요 (소셜 로그인 후)
     },
     {
       path: "/signup",
